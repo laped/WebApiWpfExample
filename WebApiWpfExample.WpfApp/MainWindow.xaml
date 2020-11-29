@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Padding="10">
     <Grid>
-        <TextBlock Text="Test Wpf"></TextBlock>
-        <DataGrid AutoGenerateColumns="True" Name="dgWeatherData">
+        <DataGrid AutoGenerateColumns="True" Name="dgWeatherData" Margin="0,35,0,0" ItemsSource="{Binding WeatherData}">
         </DataGrid>
+        <Button Content="Load Data" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="80" Command="{Binding LoadData}"/>
     </Grid>
 </Window>
