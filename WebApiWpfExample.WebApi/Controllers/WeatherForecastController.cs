@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using WebApiWpfExample.WebApi.Data.Interfaces;
+using WebApiWpfExample.WebApi.Data.Model;
+using WebApiWpfExample.WebApi.Dto;
 
 namespace WebApiWpfExample.WebApi.Controllers
 {
@@ -11,29 +12,57 @@ namespace WebApiWpfExample.WebApi.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private readonly IWeatherRepository _weatherRepository;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(IWeatherRepository weatherRepository)
         {
-            _logger = logger;
+            _weatherRepository = weatherRepository;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<IEnumerable<WeatherObservationDto>> Get()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var observations = await _weatherRepository.GetAll();
+            return observations.Select(o => new WeatherObservationDto
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                Date = o.Date,
+                TemperatureC = o.TemperatureC,
+                TemperatureF = o.TemperatureF,
+                Summary = o.Summary
+            });
+        }
+
+        [HttpGet("getById/{id}")]
+        public async Task<ActionResult<WeatherObservationDto>> GetById(int id)
+        {
+            var weatherObservation = await _weatherRepository.GetById(id);
+            if (weatherObservation == null)
+                return NotFound(id);
+
+            return new WeatherObservationDto
+            {
+                Date = weatherObservation.Date,
+                TemperatureC = weatherObservation.TemperatureC,
+                TemperatureF = weatherObservation.TemperatureF,
+                Summary = weatherObservation.Summary
+            };
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Post(WeatherObservationDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var weatherObservation = new WeatherObservation
+            {
+                Date = dto.Date,
+                TemperatureC = dto.TemperatureC,
+                Summary = dto.Summary
+            };
+            await _weatherRepository.Add(weatherObservation);
+
+            return Ok();
         }
     }
 }
