@@ -27,7 +27,7 @@ namespace WebApiWpfExample.WpfApp
             InitializeComponent();
 
             var client = new WeatherClient("https://localhost:44395", new HttpClient());
-            var data = client.WeatherForecastAsync().Result;
+            var data = client.WeatherForecastAllAsync().Result;
 
             dgWeatherData.ItemsSource = data;
         }
